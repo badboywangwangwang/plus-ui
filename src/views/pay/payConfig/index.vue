@@ -8,7 +8,7 @@
           </div>
         </template>
         <el-form ref="queryFormRef" :model="queryParams" :inline="true" class="query-form">
-                      <!-- 搜索项：按归属法人筛选 -->
+          <!-- 搜索项：按归属法人筛选 -->
           <el-form-item label="归属法人" prop="merchantId">
             <el-select
               v-model="queryParams.merchantId"
@@ -25,7 +25,8 @@
               />
             </el-select>
           </el-form-item>
-          <el-form-item label="商户号" prop="mchId">
+
+            <el-form-item label="商户号" prop="mchId">
               <el-input v-model="queryParams.mchId" placeholder="请输入商户号" clearable @keyup.enter="handleQuery" />
             </el-form-item>
             <el-form-item label="状态" prop="status">
@@ -100,10 +101,9 @@
 
       <pagination v-show="total > 0" :total="total" v-model:page="queryParams.pageNum" v-model:limit="queryParams.pageSize" @pagination="getList" />
     </el-card>
-    
-     <!-- 添加或修改应用信息对话框 -->
+    <!-- 添加或修改支付通道与商户配置对话框 -->
     <el-dialog :title="dialog.title" v-model="dialog.visible" width="500px" append-to-body>
-      <el-form ref="payAppFormRef" :model="form" :rules="rules" label-width="80px">
+      <el-form ref="payConfigFormRef" :model="form" :rules="rules" label-width="80px">
         <el-form-item label="归属法人" prop="merchantId">
           <el-select
             v-model="form.merchantId"
@@ -196,7 +196,7 @@ import {
   updatePayConfig
 } from '@/api/pay/payConfig';
 import { PayConfigForm, PayConfigQuery, PayConfigVO } from '@/api/pay/payConfig/types';
-import { listPayMerchant } from "@/api/pay/payMerchant"; // 💡 引入法人列表接口
+import { listPayMerchant } from "@/api/pay/payMerchant";
 import { useLoading } from '@/hooks/async/useLoading';
 import { useFormDialog } from '@/hooks/dialog/useFormDialog';
 import { useSearchReset } from '@/hooks/form/useSearchReset';
@@ -212,7 +212,7 @@ const statusActiveValue = '0';
 const statusInactiveValue = '1';
 
 const payConfigList = ref<PayConfigVO[]>([]);
-const merchantOptions = ref<any[]>([]);
+const merchantOptions = ref<any[]>([]); // 仅用于下拉框选项
 const buttonLoading = ref(false);
 const { loading, withLoading } = useLoading(true);
 const { showSearch } = useSearchToggle();
@@ -241,6 +241,7 @@ const data = reactive<PageData<PayConfigForm, PayConfigQuery>>({
   queryParams: {
     pageNum: 1,
     pageSize: 10,
+    merchantId: undefined,
     mchId: undefined,
     status: undefined,
     params: {
@@ -364,6 +365,8 @@ const handleStatusChange = async (row: Partial<PayConfigVO>) => {
   }
 };
 
+
+
 /** 💡 匹配函数：根据 merchantId 转换为对应的法人姓名 */
 const formatLegalPersonName = (merchantId: string | number) => {
   if (!merchantId) return '-';
@@ -380,6 +383,7 @@ const getMerchantOptions = async () => {
     console.error('获取法人下拉列表失败', error);
   }
 };
+
 
 onMounted(() => {
   getMerchantOptions();
