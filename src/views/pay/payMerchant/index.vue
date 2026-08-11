@@ -11,6 +11,11 @@
             <el-form-item label="姓名" prop="legalPersonName">
               <el-input v-model="queryParams.legalPersonName" placeholder="请输入姓名" clearable @keyup.enter="handleQuery" />
             </el-form-item>
+            <el-form-item label="状态" prop="status">
+              <el-select v-model="queryParams.status" placeholder="请选择状态" clearable >
+                <el-option v-for="dict in sys_normal_disable" :key="dict.value" :label="dict.label" :value="dict.value"/>
+              </el-select>
+            </el-form-item>
             <el-form-item>
               <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
               <el-button icon="Refresh" @click="resetQuery">重置</el-button>
@@ -38,8 +43,16 @@
       <el-table v-loading="loading" border class="data-table" :data="payMerchantList" @selection-change="handleSelectionChange">
         <el-table-column type="selection" width="55" align="center" />
         <el-table-column label="姓名" align="center" prop="legalPersonName" />
+
+                <!-- 💡 修改点 1：通过插槽用 merchantId 动态匹配显示名称 -->
+        <el-table-column label="关联城市" align="center" prop="cityId">
+          <template #default="scope">
+            <span>{{ formatCityName(scope.row.cityId) }}</span>
+          </template>
+        </el-table-column>
+        
         <el-table-column label="手机号" align="center" prop="mobile" />
-        <el-table-column label="备用手机" align="center" prop="backupMobile" />
+        <el-table-column label="备用手机号" align="center" prop="backupMobile" />
         <el-table-column label="身份证号" align="center" prop="idCard" />
         <el-table-column label="银行名称" align="center" prop="bankName" />
         <el-table-column label="对公账号" align="center" prop="bankCardNo" />
@@ -76,11 +89,24 @@
         <el-form-item label="姓名" prop="legalPersonName">
           <el-input v-model="form.legalPersonName" placeholder="请输入姓名" />
         </el-form-item>
+
+
+        <el-form-item label="关联城市" prop="cityId">
+          <el-select v-model="form.cityId" placeholder="请选择关联城市">
+            <el-option
+              v-for="item in cityOptions"
+              :key="item.cityId"
+              :label="item.cityName"
+              :value="item.cityId"
+            />
+          </el-select>
+        </el-form-item>
+
         <el-form-item label="手机号" prop="mobile">
           <el-input v-model="form.mobile" placeholder="请输入手机号" />
         </el-form-item>
         <el-form-item label="备用手机" prop="backupMobile">
-          <el-input v-model="form.backupMobile" placeholder="请输入备用手机" />
+          <el-input v-model="form.backupMobile" placeholder="请输入备用手机号" />
         </el-form-item>
         <el-form-item label="身份证号" prop="idCard">
           <el-input v-model="form.idCard" placeholder="请输入身份证号" />
@@ -136,13 +162,14 @@ import { useTableSelection } from '@/hooks/table/useTableSelection';
 import { useDict } from '@/utils/dict';
 import modal from '@/plugins/modal';
 import { download as requestDownload } from '@/utils/request';
-
+import { listPayCity } from "@/api/pay/payCity"; // 引入城市接口
 const { sys_normal_disable } = toRefs<any>(useDict('sys_normal_disable'));
 
 const statusActiveValue = '0';
 const statusInactiveValue = '1';
 
 const payMerchantList = ref<PayMerchantVO[]>([]);
+const cityOptions = ref<any[]>([]);
 const buttonLoading = ref(false);
 const { loading, withLoading } = useLoading(true);
 const { showSearch } = useSearchToggle();
@@ -154,6 +181,7 @@ const payMerchantFormRef = ref<ElFormInstance>();
 const initFormData: PayMerchantForm = {
   merchantId: undefined,
   legalPersonName: undefined,
+  cityId: undefined,
   mobile: undefined,
   backupMobile: undefined,
   idCard: undefined,
@@ -170,12 +198,13 @@ const data = reactive<PageData<PayMerchantForm, PayMerchantQuery>>({
     pageNum: 1,
     pageSize: 10,
     legalPersonName: undefined,
+    status: undefined,
     params: {
     }
   },
   rules: {
 merchantId: [
-      { required: true, message: "法人ID不能为空", trigger: "change" }
+      { required: true, message: "法人ID不能为空", trigger: "blur" }
     ],
 legalPersonName: [
       { required: true, message: "姓名不能为空", trigger: "blur" }
@@ -231,9 +260,19 @@ const handleAdd = () => {
 };
 
 /** 修改按钮操作 */
+/** 修改按钮操作 */
 const handleUpdate = async (row?: Partial<PayMerchantVO>) => {
   reset();
+  // 💡 打印看看 row 里到底有没有 merchantId
+  console.log("点击编辑行数据：", row);
+  
   const _merchantId = row?.merchantId || ids.value[0];
+  
+  if (!_merchantId) {
+    modal.msgError("未能获取到有效的法人ID");
+    return;
+  }
+
   const res = await getPayMerchant(_merchantId);
   Object.assign(form.value, res.data);
   showDialog('修改法人信息');
@@ -288,8 +327,25 @@ const handleStatusChange = async (row: Partial<PayMerchantVO>) => {
   }
 };
 
+/** 💡 匹配函数：根据 cityId 转换为对应的城市名称 */
+const formatCityName = (cityId: string | number) => {
+  if (!cityId) return '-';
+  const target = cityOptions.value.find(item => String(item.cityId) === String(cityId));
+  return target ? (target.cityName || cityId) : cityId;
+};
+
+const getCityOptions = async () => {
+  try {
+    const res: any = await listPayCity({ pageNum: 1, pageSize: 100 });
+    cityOptions.value = res.data?.rows || res.rows || [];
+  } catch (error) {
+    console.error('获取城市列表失败', error);
+  }
+};
+
 
 onMounted(() => {
+  getCityOptions();
   getList();
 });
 </script>

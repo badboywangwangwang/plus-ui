@@ -1,12 +1,19 @@
 export interface PayMerchantVO {
-  /**
-   * 法人ID
+
+    /**
+   * 关联城市
    */
   merchantId: string | number;
+
+  
   /**
    * 姓名
    */
   legalPersonName: string;
+  /**
+   * 关联城市
+   */
+  cityId: string | number;
   /**
    * 手机号
    */
@@ -43,10 +50,6 @@ export interface PayMerchantVO {
    * 状态（0正常 1停用）
    */
   status: string;
-  /**
-   * 备注
-   */
-  remark: string;
 }
 
 export interface PayMerchantForm extends BaseEntity {
@@ -58,6 +61,10 @@ export interface PayMerchantForm extends BaseEntity {
    * 姓名
    */
   legalPersonName?: string;
+  /**
+   * 关联城市
+   */
+  cityId?: string | number;
   /**
    * 手机号
    */
@@ -94,10 +101,6 @@ export interface PayMerchantForm extends BaseEntity {
    * 状态（0正常 1停用）
    */
   status?: string;
-  /**
-   * 备注
-   */
-  remark?: string;
 }
 
 export interface PayMerchantQuery extends PageQuery {
@@ -105,6 +108,10 @@ export interface PayMerchantQuery extends PageQuery {
    * 姓名
    */
   legalPersonName?: string;
+  /**
+   * 状态（0正常 1停用）
+   */
+  status?: string;
   /**
    * 日期范围参数
    */
