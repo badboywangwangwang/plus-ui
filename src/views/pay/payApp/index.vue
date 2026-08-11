@@ -142,9 +142,10 @@
         </el-table-column>
         <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
           <template #default="scope">
-            <el-tooltip content="修改" placement="top">
-              <el-button link type="primary" icon="Edit" @click="handleOpenRelModal(scope.row)" v-hasPermi="['pay:payApp:edit']"></el-button>
-            </el-tooltip>
+
+            <el-tooltip content="绑定通道" placement="top">
+            <el-button link type="primary" icon="Link" @click="handleOpenRelModal(scope.row)" v-hasPermi="['pay:payApp:edit']"></el-button>
+          </el-tooltip>
 
             <el-tooltip content="修改" placement="top">
               <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['pay:payApp:edit']"></el-button>
