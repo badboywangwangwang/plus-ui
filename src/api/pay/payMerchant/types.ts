@@ -1,11 +1,9 @@
 export interface PayMerchantVO {
 
-    /**
-   * 关联城市
+  /**
+   * 法人
    */
   merchantId: string | number;
-
-  
   /**
    * 姓名
    */
