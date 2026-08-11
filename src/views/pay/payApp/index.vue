@@ -143,6 +143,10 @@
         <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
           <template #default="scope">
             <el-tooltip content="修改" placement="top">
+              <el-button link type="primary" icon="Edit" @click="handleOpenRelModal(scope.row)" v-hasPermi="['pay:payApp:edit']"></el-button>
+            </el-tooltip>
+
+            <el-tooltip content="修改" placement="top">
               <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['pay:payApp:edit']"></el-button>
             </el-tooltip>
             <el-tooltip content="删除" placement="top">
@@ -224,6 +228,13 @@
         </div>
       </template>
     </el-dialog>
+
+    <!-- 💡 2. 挂载弹窗组件 -->
+    <AppConfigRelModal
+      v-model="relModalVisible"
+      :app-id="currentAppId"
+      :app-name="currentAppName"
+    />
   </div>
 </template>
 
@@ -246,7 +257,9 @@ import { useTableSelection } from '@/hooks/table/useTableSelection';
 import { useDict } from '@/utils/dict';
 import modal from '@/plugins/modal';
 import { download as requestDownload } from '@/utils/request';
-
+// 💡 3. 引入刚才创建的弹窗组件
+import AppConfigRelModal from '../payAppConfigRelModal/index.vue';
+const appList = ref([]); // 你的应用列表数据
 const { gan_custom_service_type, gan_app_type, sys_normal_disable } = toRefs<any>(useDict('gan_custom_service_type', 'gan_app_type', 'sys_normal_disable'));
 
 const statusActiveValue = '0';
@@ -261,6 +274,12 @@ const total = ref(0);
 
 const queryFormRef = ref<ElFormInstance>();
 const payAppFormRef = ref<ElFormInstance>();
+
+
+  // 弹窗状态控制
+const relModalVisible = ref(false);
+const currentAppId = ref<number | string | null>(null);
+const currentAppName = ref('');
 
 const initFormData: PayAppForm = {
   appId: undefined,
@@ -466,6 +485,13 @@ const maskEmail = (val?: string | null) => {
     return `${name.slice(0, 1)}****${domain}`;
   }
   return `${name.slice(0, 2)}****${name.slice(-2)}${domain}`;
+};
+
+// 点击按钮打开弹窗
+const handleOpenRelModal = (row: any) => {
+  currentAppId.value = row.appId;
+  currentAppName.value = row.appName;
+  relModalVisible.value = true;
 };
 
 onMounted(() => {
