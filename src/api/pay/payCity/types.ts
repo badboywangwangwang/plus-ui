@@ -1,4 +1,9 @@
 export interface PayCityVO {
+
+  /**
+   * 应用主键
+   */
+  cityId: string | number;
   /**
    * 城市名称
    */
@@ -10,6 +15,11 @@ export interface PayCityVO {
 }
 
 export interface PayCityForm extends BaseEntity {
+
+  /**
+   * 配置主键ID
+   */
+  cityId?: string | number;
   /**
    * 城市名称
    */
