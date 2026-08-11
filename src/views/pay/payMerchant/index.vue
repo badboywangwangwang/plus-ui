@@ -44,21 +44,143 @@
         <el-table-column type="selection" width="55" align="center" />
         <el-table-column label="姓名" align="center" prop="legalPersonName" />
 
-                <!-- 💡 修改点 1：通过插槽用 merchantId 动态匹配显示名称 -->
-        <el-table-column label="关联城市" align="center" prop="cityId">
+        <!-- 手机号 -->
+        <el-table-column label="手机号" align="center" prop="mobile" min-width="140">
           <template #default="scope">
-            <span>{{ formatCityName(scope.row.cityId) }}</span>
+            <div class="flex items-center justify-center gap-1">
+              <span>{{ maskString(scope.row.mobile) }}</span>
+              <el-button
+                v-if="scope.row.mobile"
+                link
+                type="primary"
+                icon="CopyDocument"
+                title="复制完整手机号"
+                @click.stop="handleCopy(scope.row.mobile)"
+              />
+            </div>
           </template>
         </el-table-column>
-        
-        <el-table-column label="手机号" align="center" prop="mobile" />
-        <el-table-column label="备用手机号" align="center" prop="backupMobile" />
-        <el-table-column label="身份证号" align="center" prop="idCard" />
-        <el-table-column label="银行名称" align="center" prop="bankName" />
-        <el-table-column label="对公账号" align="center" prop="bankCardNo" />
-        <el-table-column label="公司名称" align="center" prop="companyName" />
-        <el-table-column label="公司税号" align="center" prop="taxNo" />
-        <el-table-column label="公司地址" align="center" prop="companyAddress" />
+
+        <!-- 备用手机号 -->
+        <el-table-column label="备用手机号" align="center" prop="backupMobile" min-width="140">
+          <template #default="scope">
+            <div class="flex items-center justify-center gap-1">
+              <span>{{ maskString(scope.row.backupMobile) }}</span>
+              <el-button
+                v-if="scope.row.backupMobile"
+                link
+                type="primary"
+                icon="CopyDocument"
+                title="复制完整备用手机号"
+                @click.stop="handleCopy(scope.row.backupMobile)"
+              />
+            </div>
+          </template>
+        </el-table-column>
+
+        <!-- 身份证号 -->
+        <el-table-column label="身份证号" align="center" prop="idCard" min-width="180">
+          <template #default="scope">
+            <div class="flex items-center justify-center gap-1">
+              <span>{{ maskString(scope.row.idCard) }}</span>
+              <el-button
+                v-if="scope.row.idCard"
+                link
+                type="primary"
+                icon="CopyDocument"
+                title="复制完整身份证号"
+                @click.stop="handleCopy(scope.row.idCard)"
+              />
+            </div>
+          </template>
+        </el-table-column>
+
+        <!-- 银行名称 -->
+        <el-table-column label="银行名称" align="center" prop="bankName" min-width="140">
+          <template #default="scope">
+            <div class="flex items-center justify-center gap-1">
+              <span>{{ maskString(scope.row.bankName) }}</span>
+              <el-button
+                v-if="scope.row.bankName"
+                link
+                type="primary"
+                icon="CopyDocument"
+                title="复制完整银行名称"
+                @click.stop="handleCopy(scope.row.bankName)"
+              />
+            </div>
+          </template>
+        </el-table-column>
+
+        <!-- 对公账号 -->
+        <el-table-column label="对公账号" align="center" prop="bankCardNo" min-width="180">
+          <template #default="scope">
+            <div class="flex items-center justify-center gap-1">
+              <span>{{ maskString(scope.row.bankCardNo) }}</span>
+              <el-button
+                v-if="scope.row.bankCardNo"
+                link
+                type="primary"
+                icon="CopyDocument"
+                title="复制完整对公账号"
+                @click.stop="handleCopy(scope.row.bankCardNo)"
+              />
+            </div>
+          </template>
+        </el-table-column>
+
+        <!-- 公司名称 -->
+        <el-table-column label="公司名称" align="center" prop="companyName" min-width="180" show-overflow-tooltip>
+          <template #default="scope">
+            <div class="flex items-center justify-center gap-1">
+              <span>{{ maskString(scope.row.companyName) }}</span>
+              <el-button
+                v-if="scope.row.companyName"
+                link
+                type="primary"
+                icon="CopyDocument"
+                title="复制完整公司名称"
+                @click.stop="handleCopy(scope.row.companyName)"
+              />
+            </div>
+          </template>
+        </el-table-column>
+
+        <!-- 公司税号 -->
+        <el-table-column label="公司税号" align="center" prop="taxNo" min-width="180">
+          <template #default="scope">
+            <div class="flex items-center justify-center gap-1">
+              <span>{{ maskString(scope.row.taxNo) }}</span>
+              <el-button
+                v-if="scope.row.taxNo"
+                link
+                type="primary"
+                icon="CopyDocument"
+                title="复制完整公司税号"
+                @click.stop="handleCopy(scope.row.taxNo)"
+              />
+            </div>
+          </template>
+        </el-table-column>
+
+        <!-- 公司地址 -->
+        <el-table-column label="公司地址" align="center" prop="companyAddress" min-width="200" show-overflow-tooltip>
+          <template #default="scope">
+            <div class="flex items-center justify-center gap-1">
+              <span>{{ maskString(scope.row.companyAddress) }}</span>
+              <el-button
+                v-if="scope.row.companyAddress"
+                link
+                type="primary"
+                icon="CopyDocument"
+                title="复制完整公司地址"
+                @click.stop="handleCopy(scope.row.companyAddress)"
+              />
+            </div>
+          </template>
+        </el-table-column>
+
+
         <el-table-column label="状态" align="center" prop="status">
           <template #default="scope">
             <el-switch
@@ -343,6 +465,40 @@ const getCityOptions = async () => {
   }
 };
 
+/** 💡 字符串脱敏处理：只留前4位和后4位，中间用 **** 代替 */
+const maskString = (val?: string | null) => {
+  if (!val) return '-';
+  const str = String(val).trim();
+  // 如果长度不超过 8 位，说明无法保留“前4后4”，直接原样展示（或自行调整策略）
+  if (str.length <= 8) {
+    return str;
+  }
+  return `${str.slice(0, 4)}****${str.slice(-4)}`;
+};
+
+/** 复制文本到剪贴板 */
+const handleCopy = async (text: string) => {
+  if (!text) return;
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(text);
+    } else {
+      // 兼容本地非 HTTPS 环境
+      const textArea = document.createElement('textarea');
+      textArea.value = text;
+      textArea.style.position = 'fixed';
+      textArea.style.opacity = '0';
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+    }
+    modal.msgSuccess('复制成功');
+  } catch (err) {
+    modal.msgError('复制失败');
+  }
+};
 
 onMounted(() => {
   getCityOptions();

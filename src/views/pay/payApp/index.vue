@@ -78,15 +78,58 @@
             <dict-tag :options="gan_app_type" :value="scope.row.appType" />
           </template>
         </el-table-column>
-        <el-table-column label="应用标识" align="center" prop="appIdentity" />
-        <el-table-column label="应用密钥" align="center" prop="appSecret" />
+       <!-- 应用标识 -->
+        <el-table-column label="应用标识" align="center" prop="appIdentity" min-width="160" show-overflow-tooltip>
+          <template #default="scope">
+            <div class="flex items-center justify-center gap-1">
+              <span>{{ maskString(scope.row.appIdentity) }}</span>
+              <el-button
+                v-if="scope.row.appIdentity"
+                link
+                type="primary"
+                icon="CopyDocument"
+                title="复制完整应用标识"
+                @click.stop="handleCopy(scope.row.appIdentity)"
+              />
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column label="应用密钥" align="center" prop="appSecret" min-width="180" show-overflow-tooltip>
+        <template #default="scope">
+          <div class="flex items-center justify-center gap-1">
+            <span>{{ maskString(scope.row.appSecret) }}</span>
+            <el-button
+              v-if="scope.row.appSecret"
+              link
+              type="primary"
+              icon="CopyDocument"
+              title="复制完整应用密钥"
+              @click.stop="handleCopy(scope.row.appSecret)"
+            />
+          </div>
+        </template>
+      </el-table-column>
         <el-table-column label="客服类型" align="center" prop="customServiceType">
           <template #default="scope">
             <dict-tag :options="gan_custom_service_type" :value="scope.row.customServiceType" />
           </template>
         </el-table-column>
         <el-table-column label="客服会话" align="center" prop="sessionId" />
-        <el-table-column label="注册邮箱" align="center" prop="accountEmail" />
+       <el-table-column label="注册邮箱" align="center" prop="accountEmail" min-width="180" show-overflow-tooltip>
+      <template #default="scope">
+        <div class="flex items-center justify-center gap-1">
+          <span>{{ maskEmail(scope.row.accountEmail) }}</span>
+          <el-button
+            v-if="scope.row.accountEmail"
+            link
+            type="primary"
+            icon="CopyDocument"
+            title="复制完整注册邮箱"
+            @click.stop="handleCopy(scope.row.accountEmail)"
+          />
+        </div>
+      </template>
+    </el-table-column>
         <el-table-column label="状态" align="center" prop="status">
           <template #default="scope">
             <el-switch
@@ -372,6 +415,57 @@ const handleStatusChange = async (row: Partial<PayAppVO>) => {
   } catch (err) {
     row.status = row.status === statusActiveValue ? statusInactiveValue : statusActiveValue;
   }
+};
+
+/** 💡 字符串脱敏处理：只留前4位和后4位，中间用 **** 代替 */
+const maskString = (val?: string | null) => {
+  if (!val) return '-';
+  const str = String(val).trim();
+  // 如果长度不超过 8 位，说明无法保留“前4后4”，直接原样展示（或自行调整策略）
+  if (str.length <= 8) {
+    return str;
+  }
+  return `${str.slice(0, 4)}****${str.slice(-4)}`;
+};
+
+/** 复制文本到剪贴板 */
+const handleCopy = async (text: string) => {
+  if (!text) return;
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(text);
+    } else {
+      // 兼容本地非 HTTPS 环境
+      const textArea = document.createElement('textarea');
+      textArea.value = text;
+      textArea.style.position = 'fixed';
+      textArea.style.opacity = '0';
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+    }
+    modal.msgSuccess('复制成功');
+  } catch (err) {
+    modal.msgError('复制失败');
+  }
+};
+
+/** 💡 邮箱专门脱敏函数：如 test12345@gmail.com -> te****45@gmail.com */
+const maskEmail = (val?: string | null) => {
+  if (!val) return '-';
+  const str = String(val).trim();
+  const atIndex = str.indexOf('@');
+  if (atIndex <= 2) return str; // 如果 @ 前面字符太短就不强行掩码了
+  
+  const name = str.slice(0, atIndex);
+  const domain = str.slice(atIndex);
+  
+  if (name.length <= 4) {
+    return `${name.slice(0, 1)}****${domain}`;
+  }
+  return `${name.slice(0, 2)}****${name.slice(-2)}${domain}`;
 };
 
 onMounted(() => {
